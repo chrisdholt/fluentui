@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "my changelog entry",
+  "packageName": "@fluentui/web-components",
+  "email": "chhol@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-09-10T20:57:33.473Z"
+}
