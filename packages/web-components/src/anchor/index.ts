@@ -26,6 +26,7 @@ export type AnchorAppearance = ButtonAppearance | 'hypertext';
   styles,
   shadowOptions: {
     delegatesFocus: true,
+    mode: 'open',
   },
 })
 export class FluentAnchor extends Anchor {
