@@ -12,6 +12,9 @@ import {
 
 export const MenuItemStyles = css`
     ${display('grid')} :host {
+        contain: layout;
+        overflow: visible;
+        font-family: var(--body-font);
         outline: none;
         box-sizing: border-box;
         height: calc(${heightNumber} * 1px);
@@ -22,15 +25,13 @@ export const MenuItemStyles = css`
         padding: 0;
         margin: 0 calc(var(--design-unit) * 1px);
         white-space: nowrap;
-        overflow: hidden;
         color: ${neutralForegroundRestBehavior.var};
         fill: currentcolor;
         cursor: pointer;
-        font-family: var(--body-font);
         font-size: var(--type-ramp-base-font-size);
         line-height: var(--type-ramp-base-line-height);
         border-radius: calc(var(--corner-radius) * 1px);
-        border: calc(var(--outline-width) * 1px) solid transparent;
+        border: calc(var(--focus-outline-width) * 1px) solid transparent;
     }
 
     :host(:${focusVisible}) {
@@ -84,7 +85,7 @@ export const MenuItemStyles = css`
         fill: ${neutralForegroundRestBehavior.var};
     }
 
-
+    :host([aria-haspopup="menu"]),
     :host([role="menuitemcheckbox"]),
     :host([role="menuitemradio"]) {
         display: grid;
@@ -97,28 +98,33 @@ export const MenuItemStyles = css`
         display: none;
     }
 
+    :host([aria-haspopup="menu"]) .expand-collapse-glyph-container,
     :host([role="menuitemcheckbox"]) .input-container,
     :host([role="menuitemradio"]) .input-container {
         display: grid;
         margin-inline-end: 10px;
     }
 
+    :host([aria-haspopup="menu"]) .start,
     :host([role="menuitemcheckbox"]) .start,
     :host([role="menuitemradio"]) .start {
         grid-column-start: 2;
         margin-inline-end: 10px;
     }
 
+    :host([aria-haspopup="menu"]) .content,
     :host([role="menuitemcheckbox"]) .content,
     :host([role="menuitemradio"]) .content {
         grid-column-start: 3;
     }
 
+    :host([aria-haspopup="menu"]) .end,
     :host([role="menuitemcheckbox"]) .end,
     :host([role="menuitemradio"]) .end {
         grid-column-start: 4;
     }
 
+    :host .expand-collapse,
     :host .checkbox,
     :host .radio {
         display: flex;

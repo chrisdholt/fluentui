@@ -1,6 +1,8 @@
-import { customElement } from '@microsoft/fast-element';
-import { MenuItem, MenuItemTemplate as template } from '@microsoft/fast-foundation';
+import { customElement, ViewTemplate } from '@microsoft/fast-element';
+import { createMenuItemTemplate, MenuItem } from '@microsoft/fast-foundation';
 import { MenuItemStyles as styles } from './menu-item.styles';
+
+const template: ViewTemplate = createMenuItemTemplate('fluent');
 
 /**
  * The Fluent Menu Item Element. Implements {@link @microsoft/fast-foundation#MenuItem},
