@@ -1,29 +1,15 @@
-import { attr, Notifier, Observable } from '@microsoft/fast-element';
+import { attr } from '@microsoft/fast-element';
 import { parseColorHexRGB } from '@microsoft/fast-colors';
-import { designSystemProvider, CardTemplate as template } from '@microsoft/fast-foundation';
-import { neutralFillCard } from '../color';
-import { DesignSystem } from '../fluent-design-system';
-import { FluentDesignSystemProvider } from '../design-system-provider';
+import { DI, FoundationElement, CardTemplate as template } from '@microsoft/fast-foundation';
+import { SwatchRGB } from '../color-vNext/swatch';
+import { PaletteRGB } from '../color-vNext/palette';
+import { fillColor, NeutralFillCard, neutralPalette } from '../design-tokens';
 import { CardStyles as styles } from './card.styles';
 
 /**
- * The Fluent Card Element. Implements {@link @microsoft/fast-foundation#Card},
- * {@link @microsoft/fast-foundation#CardTemplate}
- *
- *
- * @public
- * @remarks
- * HTML Element: \<fluent-card\>
+ * @internal
  */
-@designSystemProvider({
-  name: 'fluent-card',
-  template,
-  styles,
-  shadowOptions: {
-    mode: 'closed',
-  },
-})
-export class FluentCard extends FluentDesignSystemProvider {
+export class Card extends FoundationElement {
   /**
    * Background color for the card component. Sets context for the design system.
    * @public
@@ -36,39 +22,51 @@ export class FluentCard extends FluentDesignSystemProvider {
   })
   public cardBackgroundColor: string;
   private cardBackgroundColorChanged(prev: string | void, next: string | void): void {
-    if (next) {
-      const parsedColor = parseColorHexRGB(this.cardBackgroundColor);
+    if (typeof next === 'string') {
+      const color = parseColorHexRGB(next);
 
-      if (parsedColor !== null) {
-        this.neutralBaseColor = this.cardBackgroundColor;
-        this.backgroundColor = this.cardBackgroundColor;
+      if (color) {
+        const swatch = SwatchRGB.create(color.r, color.g, color.b);
+        const palette = PaletteRGB.create(swatch);
+
+        fillColor.setValueFor(this, swatch);
+        neutralPalette.setValueFor(this, palette);
       }
-    } else if (this.provider && this.provider.designSystem) {
-      this.handleChange(this.provider.designSystem as DesignSystem, 'backgroundColor');
     }
   }
 
   /**
    * @internal
    */
-  public handleChange(source: DesignSystem, name: string): void {
+  public handleChange(): void {
     if (!this.cardBackgroundColor) {
-      if (this.neutralBaseColor) {
-        this.backgroundColor = neutralFillCard(this.designSystem as DesignSystem);
-      } else {
-        this.backgroundColor = neutralFillCard(source);
-      }
+      fillColor.setValueFor(this, (target: HTMLElement) => {
+        return DI.findParentContainer(target).get(NeutralFillCard)(target, fillColor.getValueFor(this.parentElement!));
+      });
     }
   }
 
   connectedCallback(): void {
     super.connectedCallback();
-    const parentDSNotifier: Notifier = Observable.getNotifier(this.provider?.designSystem);
-    parentDSNotifier.subscribe(this, 'backgroundColor');
-    parentDSNotifier.subscribe(this, 'neutralPalette');
-    this.handleChange(this.provider?.designSystem as DesignSystem, 'backgroundColor');
+
+    this.handleChange();
   }
 }
+
+/**
+ * The Fluent Card Element. Implements {@link @microsoft/fast-foundation#Card},
+ * {@link @microsoft/fast-foundation#CardTemplate}
+ *
+ *
+ * @public
+ * @remarks
+ * HTML Element: \<fluent-card\>
+ */
+export const fluentCard = Card.compose({
+  baseName: 'card',
+  template,
+  styles,
+});
 
 /**
  * Styles for Card
