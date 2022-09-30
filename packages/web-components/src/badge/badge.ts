@@ -1,6 +1,6 @@
 import { attr } from '@microsoft/fast-element';
 import { FASTBadge } from '@microsoft/fast-foundation';
-import { BadgeAppearance, BadgeColor, BadgeShape, BadgeSize } from './badge.options';
+import type { BadgeAppearance, BadgeColor, BadgeShape, BadgeSize } from './badge.options.js';
 
 /**
  * @internal

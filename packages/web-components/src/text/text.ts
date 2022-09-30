@@ -1,5 +1,5 @@
 import { attr, FASTElement } from '@microsoft/fast-element';
-import { TextAlign, TextFont, TextSize, TextWeight } from './text.options';
+import type { TextAlign, TextFont, TextSize, TextWeight } from './text.options.js';
 
 /**
  * @internal

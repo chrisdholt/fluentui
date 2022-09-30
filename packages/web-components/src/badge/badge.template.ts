@@ -1,5 +1,5 @@
 import { ElementViewTemplate, html, slotted } from '@microsoft/fast-element';
-import { Badge } from './badge.js';
+import type { Badge } from './badge.js';
 
 export const template: ElementViewTemplate<Badge> = html<Badge>`
   <template>

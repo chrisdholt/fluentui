@@ -2,19 +2,21 @@
   "compilerOptions": {
     "declaration": true,
     "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "resolveJsonModule": true,
-    "moduleResolution": "node",
-    "declarationDir": "dist/dts",
-    "outDir": "dist/esm",
     "strictNullChecks": true,
-    "target": "es2015",
-    "module": "ESNext",
     "allowJs": true,
     "skipLibCheck": true,
+    "declarationDir": "dist/dts",
+    "outDir": "dist/esm",
+    "baseUrl": ".",
+    "experimentalDecorators": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "strictPropertyInitialization": false,
+    "importsNotUsedAsValues": "error",
+    "target": "es2015",
+    "module": "ESNext",
+    "moduleResolution": "node16",
     "importHelpers": true,
-    "types": ["node", "mocha", "webpack-env"],
-    "lib": ["DOM", "ES2015", "ES2016.Array.Include"]
+    "lib": ["DOM", "ES2015", "ES2016.Array.Include", "ES2017.Object"]
   },
   "include": ["src"]
 }

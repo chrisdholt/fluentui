@@ -1,5 +1,5 @@
 import { css } from "@microsoft/fast-element";
-import { fontFamilyBase, fontFamilyMonospace, fontFamilyNumeric, fontSizeBase100, fontSizeBase200, fontSizeBase300, fontSizeBase400, fontSizeBase500, fontSizeBase600, fontSizeHero1000, fontSizeHero700, fontSizeHero800, fontSizeHero900, fontWeightMedium, fontWeightRegular, fontWeightSemibold, lineHeightBase100, lineHeightBase200, lineHeightBase300, lineHeightBase400, lineHeightBase500, lineHeightBase600, lineHeightHero1000, lineHeightHero700, lineHeightHero800, lineHeightHero900 } from "../design-tokens";
+import { fontFamilyBase, fontFamilyMonospace, fontFamilyNumeric, fontSizeBase100, fontSizeBase200, fontSizeBase300, fontSizeBase400, fontSizeBase500, fontSizeBase600, fontSizeHero1000, fontSizeHero700, fontSizeHero800, fontSizeHero900, fontWeightMedium, fontWeightRegular, fontWeightSemibold, lineHeightBase100, lineHeightBase200, lineHeightBase300, lineHeightBase400, lineHeightBase500, lineHeightBase600, lineHeightHero1000, lineHeightHero700, lineHeightHero800, lineHeightHero900 } from "../design-tokens.js";
 
 /** Text styles
  * @public

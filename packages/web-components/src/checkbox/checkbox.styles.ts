@@ -3,7 +3,7 @@ import {
   display,
   focusVisible,
 } from '@microsoft/fast-foundation';
-import { borderRadiusCircular, borderRadiusSmall, colorCompoundBrandBackground, colorCompoundBrandBackgroundHover, colorCompoundBrandBackgroundPressed, colorCompoundBrandForeground1, colorCompoundBrandForeground1Hover, colorCompoundBrandForeground1Pressed, colorCompoundBrandStroke, colorCompoundBrandStrokeHover, colorCompoundBrandStrokePressed, colorNeutralForeground1, colorNeutralForeground2, colorNeutralForeground3, colorNeutralForegroundDisabled, colorNeutralForegroundOnBrand, colorNeutralStrokeAccessible, colorNeutralStrokeAccessibleHover, colorNeutralStrokeAccessiblePressed, colorNeutralStrokeDisabled, fontFamilyBase, fontSizeBase300, lineHeightBase300, strokeWidthThin } from '../design-tokens';
+import { borderRadiusCircular, borderRadiusSmall, colorCompoundBrandBackground, colorCompoundBrandBackgroundHover, colorCompoundBrandBackgroundPressed, colorCompoundBrandForeground1, colorCompoundBrandForeground1Hover, colorCompoundBrandForeground1Pressed, colorCompoundBrandStroke, colorCompoundBrandStrokeHover, colorCompoundBrandStrokePressed, colorNeutralForeground1, colorNeutralForeground2, colorNeutralForeground3, colorNeutralForegroundDisabled, colorNeutralForegroundOnBrand, colorNeutralStrokeAccessible, colorNeutralStrokeAccessibleHover, colorNeutralStrokeAccessiblePressed, colorNeutralStrokeDisabled, fontFamilyBase, fontSizeBase300, lineHeightBase300, strokeWidthThin } from '../design-tokens.js';
 
 // TODO replace these spacing constants with theme values once they're on the theme
 const spacingHorizontalM = '12px';

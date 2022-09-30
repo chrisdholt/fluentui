@@ -1,5 +1,5 @@
 import { attr, FASTElement } from '@microsoft/fast-element';
-import { ImageFit, ImageShape } from './image.options';
+import type { ImageFit, ImageShape } from './image.options.js';
 
 /**
  * @internal

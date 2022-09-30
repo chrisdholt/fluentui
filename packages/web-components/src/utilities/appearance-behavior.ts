@@ -1,4 +1,4 @@
-import { ElementStyles } from '@microsoft/fast-element';
+import type { ElementStyles } from '@microsoft/fast-element';
 import { PropertyStyleSheetBehavior } from '@microsoft/fast-foundation';
 
 /**
@@ -10,6 +10,6 @@ import { PropertyStyleSheetBehavior } from '@microsoft/fast-foundation';
  *
  * @public
  */
-export function appearanceBehavior(value: string, styles: ElementStyles) {
+export function appearanceBehavior(value: string, styles: ElementStyles): PropertyStyleSheetBehavior {
   return new PropertyStyleSheetBehavior('appearance', value, styles);
 }
