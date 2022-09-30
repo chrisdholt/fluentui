@@ -1,5 +1,5 @@
 import { attr, observable, SyntheticViewTemplate } from '@microsoft/fast-element';
-import { FormAssociatedCheckbox } from './checkbox.form-associated';
+import { FormAssociatedCheckbox } from './checkbox.form-associated.js';
 
 /**
  * Types of checkbox size.

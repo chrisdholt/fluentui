@@ -290,6 +290,8 @@
       "@fluentui/web-components/@storybook/html",
       "@fluentui/web-components/ts-loader",
       "@fluentui/web-components/ts-loader/**",
+      "@fluentui/web-components/typescript",
+      "@fluentui/web-components/typescript/**",
       "@fluentui/web-components/webpack",
       "@fluentui/react-18-tests-v9/react",
       "@fluentui/react-18-tests-v9/react-dom"
@@ -368,9 +370,9 @@
           "@fluentui/web-components"
         ],
         "dependencies": [
-          "mocha",
           "ts-loader",
           "tslib",
+          "typescript",
           "webpack"
         ]
       },

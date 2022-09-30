@@ -8,6 +8,7 @@
     "url": "https://discord.gg/FcSNfg4"
   },
   "license": "MIT",
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/microsoft/fluentui/tree/master/packages/web-components"
@@ -40,7 +41,7 @@
     "clean": "node ./build/clean.js dist",
     "doc": "api-extractor run --local",
     "doc:ci": "api-extractor run --local",
-    "build": "tsc -p ./tsconfig.json && rollup -c && npm run doc",
+    "build": "tsc -p ./tsconfig.json && rollup -c",
     "dev": "tsc -p ./tsconfig.json -w",
     "prepare": "yarn clean && yarn build",
     "lint": "eslint . --ext .ts",
@@ -51,6 +52,7 @@
     "start": "start-storybook -p 6006"
   },
   "devDependencies": {
+    "@microsoft/eslint-config-fast-dna": "2.1.0",
     "@storybook/html": "^6.5.0",
     "@storybook/addon-essentials": "^6.5.0",
     "@storybook/addon-links": "^6.5.0",
@@ -70,6 +72,7 @@
     "source-map": "^0.7.3",
     "source-map-loader": "^0.2.4",
     "ts-loader": "^7.0.2",
+    "typescript": "4.7.3",
     "webpack": "^4.43.0"
   },
   "dependencies": {
