@@ -24,6 +24,10 @@
       "types": "./dist/esm/badge/define.d.ts",
       "default": "./dist/esm/badge/define.js"
     },
+    "./button/define": {
+      "types": "./dist/esm/button/define.d.ts",
+      "default": "./dist/esm/button/define.js"
+    },
     "./checkbox/define": {
       "types": "./dist/esm/checkbox/define.d.ts",
       "default": "./dist/esm/checkbox/define.js"
