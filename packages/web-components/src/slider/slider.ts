@@ -379,16 +379,10 @@ export class Slider extends FormAssociatedSlider implements SliderConfiguration 
    */
   private setThumbPositionForOrientation(direction: Direction): void {
     const newPct: number = convertPixelToPercent(Number(this.value), Number(this.min), Number(this.max), direction);
+    console.log(newPct, 'new pct');
     const percentage: number = (1 - newPct) * 100;
-    if (this.orientation === Orientation.horizontal) {
-      this.position = this.isDragging
-        ? `right: ${percentage}%; transition: none;`
-        : `right: ${percentage}%; transition: all 0.2s ease;`;
-    } else {
-      this.position = this.isDragging
-        ? `top: ${percentage}%; transition: none;`
-        : `top: ${percentage}%; transition: all 0.2s ease;`;
-    }
+    // if (this.orientation === Orientation.horizontal) {
+    this.position = `--slider-progress: calc(100% - ${percentage}%);`;
   }
 
   /**
@@ -417,11 +411,9 @@ export class Slider extends FormAssociatedSlider implements SliderConfiguration 
   private setupListeners = (remove: boolean = false): void => {
     //TODO Bug: https://github.com/microsoft/fluentui/issues/30087
     this.addEventListener('keydown', this.keypressHandler);
-    this.addEventListener('mousedown', this.handleMouseDown);
-    // removes handlers attached by mousedown handlers
+
     if (remove) {
       this.removeEventListener('keydown', this.keypressHandler);
-      this.removeEventListener('mousedown', this.handleMouseDown);
     }
   };
 
@@ -452,29 +444,34 @@ export class Slider extends FormAssociatedSlider implements SliderConfiguration 
    *  Handle mouse moves during a thumb drag operation
    *  If the event handler is null it removes the events
    */
-  public handleThumbMouseDown = (event: MouseEvent | null): void => {
+  public handleThumbPointerDown = (event: PointerEvent | null): void => {
     const windowFn = event !== null ? window.addEventListener : window.removeEventListener;
-    windowFn('mouseup', this.handleWindowMouseUp);
-    windowFn('mousemove', this.handleMouseMove, { passive: true });
-    windowFn('touchmove', this.handleMouseMove, { passive: true });
-    windowFn('touchend', this.handleWindowMouseUp);
+    windowFn('pointerup', this.handleWindowPointerUp);
+    windowFn('pointermove', this.handlePointerMove, { passive: true });
+    windowFn('touchmove', this.handlePointerMove, { passive: true });
+    windowFn('touchend', this.handleWindowPointerUp);
     this.isDragging = event !== null;
   };
 
   /**
    *  Handle mouse moves during a thumb drag operation
    */
-  private handleMouseMove = (e: MouseEvent | TouchEvent | Event): void => {
+  private handlePointerMove = (e: PointerEvent | TouchEvent | Event): void => {
     if (this.readOnly || this.disabled || e.defaultPrevented) {
       return;
     }
+    console.log(e instanceof TouchEvent, 'event is touch event');
+    console.log((e as PointerEvent).pageX, 'page X');
+    console.log(document.documentElement.scrollLeft, 'scroll left');
+    console.log(this.getBoundingClientRect().left, 'track left');
+    console.log((e as PointerEvent).pageX - document.documentElement.scrollLeft, 'pageX - scroll left');
     // update the value based on current position
-    const sourceEvent = window.TouchEvent && e instanceof TouchEvent ? e.touches[0] : (e as MouseEvent);
+    const sourceEvent = window.TouchEvent && e instanceof TouchEvent ? e.touches[0] : (e as PointerEvent);
     const eventValue: number =
       this.orientation === Orientation.horizontal
         ? sourceEvent.pageX - document.documentElement.scrollLeft - this.trackLeft
         : sourceEvent.pageY - document.documentElement.scrollTop;
-
+    console.log(eventValue, 'event value');
     this.value = `${this.calculateNewValue(eventValue)}`;
   };
 
@@ -503,27 +500,27 @@ export class Slider extends FormAssociatedSlider implements SliderConfiguration 
   /**
    * Handle a window mouse up during a drag operation
    */
-  private handleWindowMouseUp = (event: Event): void => {
+  private handleWindowPointerUp = (event: Event): void => {
     this.stopDragging();
   };
 
   private stopDragging = (): void => {
     this.isDragging = false;
-    this.handleMouseDown(null);
-    this.handleThumbMouseDown(null);
+    this.handlePointerDown(null);
+    this.handleThumbPointerDown(null);
   };
 
   /**
    *
-   * @param e - MouseEvent or null. If there is no event handler it will remove the events
+   * @param e - PointerEvent or null. If there is no event handler it will remove the events
    */
-  public handleMouseDown = (e: MouseEvent | null) => {
+  public handlePointerDown = (e: PointerEvent | null) => {
     if (e === null || (!this.disabled && !this.readOnly)) {
       const windowFn = e !== null ? window.addEventListener : window.removeEventListener;
       const documentFn = e !== null ? document.addEventListener : document.removeEventListener;
-      windowFn('mouseup', this.handleWindowMouseUp);
-      documentFn('mouseleave', this.handleWindowMouseUp);
-      windowFn('mousemove', this.handleMouseMove);
+      windowFn('pointerup', this.handleWindowPointerUp);
+      documentFn('mouseleave', this.handleWindowPointerUp);
+      windowFn('pointermove', this.handlePointerMove);
 
       if (e) {
         this.setupTrackConstraints();
