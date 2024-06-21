@@ -10,11 +10,7 @@ export function sliderTemplate<T extends Slider>(options: SliderOptions = {}): E
       tabindex="${x => (x.disabled ? null : 0)}"
       aria-valuetext="${x => x.valueTextFormatter(x.value)}"
       aria-valuenow="${x => x.value}"
-      aria-valuemin="${x => x.min}"
-      aria-valuemax="${x => x.max}"
       aria-disabled="${x => (x.disabled ? true : void 0)}"
-      aria-readonly="${x => (x.readOnly ? true : void 0)}"
-      aria-orientation="${x => x.orientation}"
     >
       <div
         ${ref('track')}

@@ -82,28 +82,12 @@ export class Slider extends FASTElement implements SliderConfiguration {
       this.stepStyles = css/**css*/ `
         :host {
           --step-rate: ${totalSteps}%;
-          color: blue;
         }
       `;
 
       this.$fastController.addStyles(this.stepStyles);
     } else if (this.stepStyles !== undefined) {
       this.$fastController.removeStyles(this.stepStyles);
-    }
-  }
-
-  /**
-   * When true, the control will be immutable by user interaction. See {@link https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/readonly | readonly HTML attribute} for more information.
-   *
-   * @public
-   * @remarks
-   * HTML Attribute: readonly
-   */
-  @attr({ attribute: 'readonly', mode: 'boolean' })
-  public readOnly!: boolean; // Map to proxy element
-  protected readOnlyChanged(): void {
-    if (this.proxy instanceof HTMLInputElement) {
-      this.proxy.readOnly = this.readOnly;
     }
   }
 
@@ -167,7 +151,7 @@ export class Slider extends FASTElement implements SliderConfiguration {
       }
 
       this._value = value;
-      this.setThumbPositionForOrientation(this.direction);
+      this.setSliderPosition(this.direction);
       this.$emit('change');
       this.setFormValue(value);
       Observable.notify(this, 'value');
@@ -274,7 +258,7 @@ export class Slider extends FASTElement implements SliderConfiguration {
    * @public
    */
   public get _minValue(): number {
-    return this.min === undefined ? 0 : this.min;
+    return this.min ?? 0;
   }
 
   /**
@@ -283,7 +267,7 @@ export class Slider extends FASTElement implements SliderConfiguration {
    * @public
    */
   public get _maxValue(): number {
-    return this.max === undefined ? 100 : this.max;
+    return this.max ?? 100;
   }
 
   /**
@@ -312,9 +296,9 @@ export class Slider extends FASTElement implements SliderConfiguration {
    * HTML Attribute: min
    */
   @attr({ converter: nullableNumberConverter })
-  public min!: number; // Map to proxy element.
-  protected minChanged(): void {
-    return;
+  public min!: number;
+  protected minChanged(prev: string | undefined, next: string | undefined): void {
+    this.elementInternals.ariaValueMin = `${this._minValue}`;
   }
 
   /**
@@ -326,9 +310,9 @@ export class Slider extends FASTElement implements SliderConfiguration {
    * HTML Attribute: max
    */
   @attr({ converter: nullableNumberConverter })
-  public max: number = 10; // Map to proxy element.
-  protected maxChanged(): void {
-    return;
+  public max!: number;
+  protected maxChanged(prev: string | undefined, next: string | undefined): void {
+    this.elementInternals.ariaValueMax = `${this._maxValue}`;
   }
 
   /**
@@ -352,10 +336,11 @@ export class Slider extends FASTElement implements SliderConfiguration {
    * HTML Attribute: orientation
    */
   @attr
-  public orientation: Orientation = Orientation.horizontal;
-  protected orientationChanged(): void {
+  public orientation?: Orientation;
+  protected orientationChanged(prev: string | undefined, next: string | undefined): void {
+    this.elementInternals.ariaOrientation = next ?? Orientation.horizontal;
     if (this.$fastController.isConnected) {
-      this.setThumbPositionForOrientation(this.direction);
+      this.setSliderPosition(this.direction);
     }
   }
 
@@ -386,7 +371,7 @@ export class Slider extends FASTElement implements SliderConfiguration {
     this.setupTrackConstraints();
     this.setupListeners();
     this.setupDefaultValue();
-    this.setThumbPositionForOrientation(this.direction);
+    this.setSliderPosition(this.direction);
 
     Observable.getNotifier(this).subscribe(this, 'max');
     Observable.getNotifier(this).subscribe(this, 'min');
@@ -437,7 +422,7 @@ export class Slider extends FASTElement implements SliderConfiguration {
   }
 
   public keypressHandler = (e: KeyboardEvent): void => {
-    if (this.readOnly || this.disabled) {
+    if (this.disabled) {
       return;
     }
 
@@ -483,7 +468,7 @@ export class Slider extends FASTElement implements SliderConfiguration {
    * @public
    * @param direction - writing mode
    */
-  private setThumbPositionForOrientation(direction: Direction): void {
+  private setSliderPosition(direction: Direction): void {
     const newPct: number = convertPixelToPercent(parseFloat(this.value), this._minValue, this._maxValue, direction);
     const percentage: number = (1 - newPct) * 100;
     const thumbPosition = `calc(100% - ${percentage}%)`;
@@ -560,7 +545,7 @@ export class Slider extends FASTElement implements SliderConfiguration {
    *  Handle mouse moves during a thumb drag operation
    */
   private handlePointerMove = (e: PointerEvent | TouchEvent | Event): void => {
-    if (this.readOnly || this.disabled || e.defaultPrevented) {
+    if (this.disabled || e.defaultPrevented) {
       return;
     }
 
@@ -614,7 +599,7 @@ export class Slider extends FASTElement implements SliderConfiguration {
    * @param e - PointerEvent or null. If there is no event handler it will remove the events
    */
   public handlePointerDown = (e: PointerEvent | null) => {
-    if (e === null || (!this.disabled && !this.readOnly)) {
+    if (e === null || !this.disabled) {
       const windowFn = e !== null ? window.addEventListener : window.removeEventListener;
       const documentFn = e !== null ? document.addEventListener : document.removeEventListener;
       windowFn('pointerup', this.handleWindowPointerUp);

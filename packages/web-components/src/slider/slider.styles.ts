@@ -80,6 +80,7 @@ export const styles = css`
     content: '';
     position: absolute;
     height: 100%;
+    border-radius: inherit;
     inset-inline-start: 0;
     width: var(--slider-progress);
   }
@@ -147,12 +148,12 @@ export const styles = css`
     background-color: ${colorCompoundBrandBackgroundPressed};
   }
 
-  :host([disabled]) .track {
+  :host(:disabled) .track {
     background-color: ${colorNeutralBackgroundDisabled};
   }
 
-  :host([disabled]) .thumb,
-  :host([disabled]) .track::before {
+  :host(:disabled) .thumb,
+  :host(:disabled) .track::before {
     background-color: ${colorNeutralForegroundDisabled};
   }
 `.withBehaviors(
