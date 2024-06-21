@@ -1,4 +1,4 @@
-import { attr, css, nullableNumberConverter, observable, Observable } from '@microsoft/fast-element';
+import { attr, css, FASTElement, nullableNumberConverter, observable, Observable } from '@microsoft/fast-element';
 import type { ElementStyles } from '@microsoft/fast-element';
 import {
   Direction,
@@ -13,14 +13,37 @@ import {
 } from '@microsoft/fast-web-utilities';
 import { getDirection } from '../utils/index.js';
 import { SliderConfiguration, SliderMode, SliderSize } from './slider.options.js';
-import { FormAssociatedSlider } from './slider.form-associated.js';
 import { convertPixelToPercent } from './slider-utilities.js';
 
 /**
  * The base class used for constructing a fluent-slider custom element
  * @public
  */
-export class Slider extends FormAssociatedSlider implements SliderConfiguration {
+export class Slider extends FASTElement implements SliderConfiguration {
+  /**
+   * The internal {@link https://developer.mozilla.org/docs/Web/API/ElementInternals | `ElementInternals`} instance for the component.
+   *
+   * @internal
+   */
+  public elementInternals: ElementInternals = this.attachInternals();
+
+  /**
+   * The form-associated flag.
+   * @see {@link https://html.spec.whatwg.org/multipage/custom-elements.html#custom-elements-face-example | Form-associated custom elements}
+   *
+   * @public
+   */
+  public static formAssociated = true;
+
+  /**
+   * A reference to all associated `<label>` elements.
+   *
+   * @public
+   */
+  public get labels(): ReadonlyArray<Node> {
+    return Object.freeze(Array.from(this.elementInternals.labels));
+  }
+
   /**
    * The size of the slider
    * @public
@@ -50,7 +73,7 @@ export class Slider extends FormAssociatedSlider implements SliderConfiguration 
    */
   private handleStepStyles(): void {
     if (this.step) {
-      const totalSteps = (100 / Math.floor((this.max - this.min) / this.step)) as any;
+      const totalSteps = (100 / Math.floor((this._max - this._min) / this.step)) as any;
 
       if (this.stepStyles !== undefined) {
         this.$fastController.removeStyles(this.stepStyles);
@@ -81,6 +104,132 @@ export class Slider extends FormAssociatedSlider implements SliderConfiguration 
   protected readOnlyChanged(): void {
     if (this.proxy instanceof HTMLInputElement) {
       this.proxy.readOnly = this.readOnly;
+    }
+  }
+
+  /**
+   * The initial value of the input.
+   *
+   * @public
+   * @remarks
+   * HTML Attribute: `value`
+   */
+  @attr({ attribute: 'value', mode: 'fromView' })
+  public initialValue: string = 'on';
+
+  /**
+   * Sets the value of the input when the value attribute changes.
+   *
+   * @param prev - The previous value
+   * @param next - The current value
+   * @internal
+   */
+  public initialValueChanged(prev: string, next: string): void {
+    this._value = next;
+  }
+
+  /**
+   * The element's validity state.
+   *
+   * @public
+   * @remarks
+   * Reflects the {@link https://developer.mozilla.org/docs/Web/API/ElementInternals/validity | `ElementInternals.validity`} property.
+   */
+  public get validity(): ValidityState {
+    return this.elementInternals.validity;
+  }
+
+  /**
+   * The internal value of the input.
+   *
+   * @internal
+   */
+  private _value: string = this.initialValue;
+
+  /**
+   * The current value of the input.
+   *
+   * @public
+   */
+  public get value(): string {
+    Observable.track(this, 'value');
+    return this._value;
+  }
+
+  public set value(value: string) {
+    this._value = value;
+
+    if (this.$fastController.isConnected) {
+      this.setFormValue(value);
+      this.setValidity();
+      Observable.notify(this, 'value');
+    }
+  }
+
+  /**
+   * Resets the form value to its initial value when the form is reset.
+   *
+   * @internal
+   */
+  formResetCallback(): void {
+    this.checked = this.initialChecked ?? false;
+    this.dirtyChecked = false;
+    this.indeterminate = false;
+    this.setValidity();
+  }
+
+  /**
+   * Reports the validity of the element.
+   *
+   * @public
+   * @remarks
+   * Reflects the {@link https://developer.mozilla.org/docs/Web/API/ElementInternals/reportValidity | `HTMLInputElement.reportValidity()`} method.
+   */
+  public reportValidity(): boolean {
+    return this.elementInternals.reportValidity();
+  }
+
+  /**
+   * Reflects the {@link https://developer.mozilla.org/docs/Web/API/ElementInternals/setFormValue | `ElementInternals.setFormValue()`} method.
+   *
+   * @internal
+   */
+  public setFormValue(value: File | string | FormData | null, state?: File | string | FormData | null): void {
+    this.elementInternals.setFormValue(value, value ?? state);
+  }
+
+  /**
+   * Sets a custom validity message.
+   *
+   * @param message - The message to set
+   * @public
+   */
+  public setCustomValidity(message: string): void {
+    this.elementInternals.setValidity({ customError: true }, message);
+    this.setValidity();
+  }
+
+  /**
+   * Sets the validity of the control.
+   *
+   * @param flags - Validity flags to set.
+   * @param message - Optional message to supply. If not provided, the control's `validationMessage` will be used.
+   * @param anchor - Optional anchor to use for the validation message.
+   *
+   * @internal
+   */
+  public setValidity(
+    flags: Partial<ValidityState> = { valueMissing: !!this.required && !this.checked },
+    message: string = this.validationMessage,
+    anchor?: HTMLElement,
+  ): void {
+    if (this.$fastController.isConnected) {
+      if (this.disabled) {
+        this.elementInternals.setValidity({});
+        return;
+      }
+
+      this.elementInternals.setValidity(flags, message, anchor);
     }
   }
 
@@ -153,11 +302,29 @@ export class Slider extends FormAssociatedSlider implements SliderConfiguration 
    * @public
    */
   public get valueAsNumber(): number {
-    return parseFloat(super.value);
+    return parseFloat(this.value);
   }
 
   public set valueAsNumber(next: number) {
     this.value = next.toString();
+  }
+
+  /**
+   * Returns the min property or the default value
+   *
+   * @public
+   */
+  public get _min(): number {
+    return this.min ?? 0;
+  }
+
+  /**
+   * Returns the max property or the default value
+   *
+   * @public
+   */
+  public get _max(): number {
+    return this.max ?? 100;
   }
 
   /**
@@ -174,7 +341,7 @@ export class Slider extends FormAssociatedSlider implements SliderConfiguration 
   public valueChanged(previous: string, next: string): void {
     if (this.$fastController.isConnected) {
       const nextAsNumber = parseFloat(next);
-      const value = limit(this.min, this.max, this.convertToConstrainedValue(nextAsNumber)).toString();
+      const value = limit(this._min, this._max, this.convertToConstrainedValue(nextAsNumber)).toString();
 
       if (value !== next) {
         this.value = value;
@@ -198,12 +365,8 @@ export class Slider extends FormAssociatedSlider implements SliderConfiguration 
    * HTML Attribute: min
    */
   @attr({ converter: nullableNumberConverter })
-  public min: number = 0; // Map to proxy element.
+  public min!: number; // Map to proxy element.
   protected minChanged(): void {
-    if (this.proxy instanceof HTMLInputElement) {
-      this.proxy.min = `${this.min}`;
-    }
-
     this.validate();
   }
 
@@ -218,9 +381,6 @@ export class Slider extends FormAssociatedSlider implements SliderConfiguration 
   @attr({ converter: nullableNumberConverter })
   public max: number = 10; // Map to proxy element.
   protected maxChanged(): void {
-    if (this.proxy instanceof HTMLInputElement) {
-      this.proxy.max = `${this.max}`;
-    }
     this.validate();
   }
 
@@ -267,13 +427,17 @@ export class Slider extends FormAssociatedSlider implements SliderConfiguration 
   @attr
   public mode: SliderMode = SliderMode.singleValue;
 
+  constructor() {
+    super();
+
+    this.elementInternals.role = 'slider';
+  }
+
   /**
    * @internal
    */
   public connectedCallback(): void {
     super.connectedCallback();
-
-    this.proxy.setAttribute('type', 'range');
 
     this.direction = getDirection(this);
     this.updateStepMultiplier();
@@ -313,7 +477,7 @@ export class Slider extends FormAssociatedSlider implements SliderConfiguration 
         ? Number(this.value) + Number(this.stepValue)
         : Number(this.value) + Number(this.stepValue);
     const incrementedVal: number = this.convertToConstrainedValue(newVal);
-    const incrementedValString: string = incrementedVal < Number(this.max) ? `${incrementedVal}` : `${this.max}`;
+    const incrementedValString: string = incrementedVal < this._max ? `${incrementedVal}` : `${this._max}`;
     this.value = incrementedValString;
   }
 
@@ -328,7 +492,7 @@ export class Slider extends FormAssociatedSlider implements SliderConfiguration 
         ? Number(this.value) - Number(this.stepValue)
         : Number(this.value) - Number(this.stepValue);
     const decrementedVal: number = this.convertToConstrainedValue(newVal);
-    const decrementedValString: string = decrementedVal > Number(this.min) ? `${decrementedVal}` : `${this.min}`;
+    const decrementedValString: string = decrementedVal > this._min ? `${decrementedVal}` : `${this._min}`;
     this.value = decrementedValString;
   }
 
@@ -339,14 +503,12 @@ export class Slider extends FormAssociatedSlider implements SliderConfiguration 
 
     if (e.key === keyHome) {
       e.preventDefault();
-      this.direction !== Direction.rtl && this.orientation !== Orientation.vertical
-        ? (this.value = `${this.min}`)
-        : (this.value = `${this.max}`);
+      this.value =
+        this.direction !== Direction.rtl && this.orientation !== Orientation.vertical ? `${this._min}` : `${this._max}`;
     } else if (e.key === keyEnd) {
       e.preventDefault();
-      this.direction !== Direction.rtl && this.orientation !== Orientation.vertical
-        ? (this.value = `${this.max}`)
-        : (this.value = `${this.min}`);
+      this.value =
+        this.direction !== Direction.rtl && this.orientation !== Orientation.vertical ? `${this._max}` : `${this._min}`;
     } else if (!e.shiftKey) {
       switch (e.key) {
         case keyArrowRight:
@@ -378,10 +540,9 @@ export class Slider extends FormAssociatedSlider implements SliderConfiguration 
    * @param direction - writing mode
    */
   private setThumbPositionForOrientation(direction: Direction): void {
-    const newPct: number = convertPixelToPercent(Number(this.value), Number(this.min), Number(this.max), direction);
-    console.log(newPct, 'new pct');
+    const newPct: number = convertPixelToPercent(Number(this.value), this._min, this._max, direction);
     const percentage: number = (1 - newPct) * 100;
-    // if (this.orientation === Orientation.horizontal) {
+
     this.position = `--slider-progress: calc(100% - ${percentage}%);`;
   }
 
@@ -407,7 +568,6 @@ export class Slider extends FormAssociatedSlider implements SliderConfiguration 
     }
   };
 
-  //Remove
   private setupListeners = (remove: boolean = false): void => {
     //TODO Bug: https://github.com/microsoft/fluentui/issues/30087
     this.addEventListener('keydown', this.keypressHandler);
@@ -423,7 +583,7 @@ export class Slider extends FormAssociatedSlider implements SliderConfiguration 
   public initialValue: string = '';
 
   private get midpoint(): string {
-    return `${this.convertToConstrainedValue((this.max + this.min) / 2)}`;
+    return `${this.convertToConstrainedValue((this._max + this._min) / 2)}`;
   }
 
   private setupDefaultValue(): void {
@@ -433,7 +593,7 @@ export class Slider extends FormAssociatedSlider implements SliderConfiguration 
       } else {
         const value = parseFloat(this.value);
 
-        if (!Number.isNaN(value) && (value < this.min || value > this.max)) {
+        if (!Number.isNaN(value) && (value < this._min || value > this._max)) {
           this.value = this.midpoint;
         }
       }
@@ -460,18 +620,13 @@ export class Slider extends FormAssociatedSlider implements SliderConfiguration 
     if (this.readOnly || this.disabled || e.defaultPrevented) {
       return;
     }
-    console.log(e instanceof TouchEvent, 'event is touch event');
-    console.log((e as PointerEvent).pageX, 'page X');
-    console.log(document.documentElement.scrollLeft, 'scroll left');
-    console.log(this.getBoundingClientRect().left, 'track left');
-    console.log((e as PointerEvent).pageX - document.documentElement.scrollLeft, 'pageX - scroll left');
     // update the value based on current position
     const sourceEvent = window.TouchEvent && e instanceof TouchEvent ? e.touches[0] : (e as PointerEvent);
     const eventValue: number =
       this.orientation === Orientation.horizontal
         ? sourceEvent.pageX - document.documentElement.scrollLeft - this.trackLeft
         : sourceEvent.pageY - document.documentElement.scrollTop;
-    console.log(eventValue, 'event value');
+
     this.value = `${this.calculateNewValue(eventValue)}`;
   };
 
@@ -493,7 +648,7 @@ export class Slider extends FormAssociatedSlider implements SliderConfiguration 
       this.orientation === Orientation.horizontal ? this.trackWidth : this.trackHeight,
       this.direction,
     );
-    const newValue: number = (this.max - this.min) * newPosition + this.min;
+    const newValue: number = (this._max - this._min) * newPosition + this._min;
     return this.convertToConstrainedValue(newValue);
   }
 
@@ -536,7 +691,7 @@ export class Slider extends FormAssociatedSlider implements SliderConfiguration 
 
   private convertToConstrainedValue(value: number): number {
     if (isNaN(value)) {
-      value = this.min;
+      value = this._min;
     }
 
     /**
@@ -545,7 +700,7 @@ export class Slider extends FormAssociatedSlider implements SliderConfiguration 
      * and is converted to an integer by determining the number of decimal places it represent, multiplying it until it is an
      * integer and then dividing it to get back to the correct number.
      */
-    let constrainedValue: number = value - this.min;
+    let constrainedValue: number = value - this._min;
     const roundedConstrainedValue: number = Math.round(constrainedValue / this.stepValue);
     const remainderValue: number =
       constrainedValue - (roundedConstrainedValue * (this.stepMultiplier * this.stepValue)) / this.stepMultiplier;
@@ -554,6 +709,6 @@ export class Slider extends FormAssociatedSlider implements SliderConfiguration 
       remainderValue >= Number(this.stepValue) / 2
         ? constrainedValue - remainderValue + Number(this.stepValue)
         : constrainedValue - remainderValue;
-    return constrainedValue + this.min;
+    return constrainedValue + this._min;
   }
 }
