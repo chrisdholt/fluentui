@@ -7,7 +7,6 @@ import { Slider } from './slider.js';
 export function sliderTemplate<T extends Slider>(options: SliderOptions = {}): ElementViewTemplate<T> {
   return html<T>`
     <template
-      role="slider"
       tabindex="${x => (x.disabled ? null : 0)}"
       aria-valuetext="${x => x.valueTextFormatter(x.value)}"
       aria-valuenow="${x => x.value}"

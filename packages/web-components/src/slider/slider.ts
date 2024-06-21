@@ -73,7 +73,7 @@ export class Slider extends FASTElement implements SliderConfiguration {
    */
   private handleStepStyles(): void {
     if (this.step) {
-      const totalSteps = (100 / Math.floor((this._max - this._min) / this.step)) as any;
+      const totalSteps = (100 / Math.floor((this._maxValue - this._minValue) / this.step)) as any;
 
       if (this.stepStyles !== undefined) {
         this.$fastController.removeStyles(this.stepStyles);
@@ -115,7 +115,7 @@ export class Slider extends FASTElement implements SliderConfiguration {
    * HTML Attribute: `value`
    */
   @attr({ attribute: 'value', mode: 'fromView' })
-  public initialValue: string = 'on';
+  public initialValue!: string;
 
   /**
    * Sets the value of the input when the value attribute changes.
@@ -157,11 +157,19 @@ export class Slider extends FASTElement implements SliderConfiguration {
   }
 
   public set value(value: string) {
-    this._value = value;
-
     if (this.$fastController.isConnected) {
+      const nextAsNumber = parseFloat(value);
+      const newValue = limit(this._minValue, this._maxValue, this.convertToConstrainedValue(nextAsNumber)).toString();
+
+      if (newValue !== value) {
+        this.value = newValue;
+        return;
+      }
+
+      this._value = value;
+      this.setThumbPositionForOrientation(this.direction);
+      this.$emit('change');
       this.setFormValue(value);
-      this.setValidity();
       Observable.notify(this, 'value');
     }
   }
@@ -172,21 +180,7 @@ export class Slider extends FASTElement implements SliderConfiguration {
    * @internal
    */
   formResetCallback(): void {
-    this.checked = this.initialChecked ?? false;
-    this.dirtyChecked = false;
-    this.indeterminate = false;
-    this.setValidity();
-  }
-
-  /**
-   * Reports the validity of the element.
-   *
-   * @public
-   * @remarks
-   * Reflects the {@link https://developer.mozilla.org/docs/Web/API/ElementInternals/reportValidity | `HTMLInputElement.reportValidity()`} method.
-   */
-  public reportValidity(): boolean {
-    return this.elementInternals.reportValidity();
+    this.value = this.initialValue ?? false;
   }
 
   /**
@@ -196,41 +190,6 @@ export class Slider extends FASTElement implements SliderConfiguration {
    */
   public setFormValue(value: File | string | FormData | null, state?: File | string | FormData | null): void {
     this.elementInternals.setFormValue(value, value ?? state);
-  }
-
-  /**
-   * Sets a custom validity message.
-   *
-   * @param message - The message to set
-   * @public
-   */
-  public setCustomValidity(message: string): void {
-    this.elementInternals.setValidity({ customError: true }, message);
-    this.setValidity();
-  }
-
-  /**
-   * Sets the validity of the control.
-   *
-   * @param flags - Validity flags to set.
-   * @param message - Optional message to supply. If not provided, the control's `validationMessage` will be used.
-   * @param anchor - Optional anchor to use for the validation message.
-   *
-   * @internal
-   */
-  public setValidity(
-    flags: Partial<ValidityState> = { valueMissing: !!this.required && !this.checked },
-    message: string = this.validationMessage,
-    anchor?: HTMLElement,
-  ): void {
-    if (this.$fastController.isConnected) {
-      if (this.disabled) {
-        this.elementInternals.setValidity({});
-        return;
-      }
-
-      this.elementInternals.setValidity(flags, message, anchor);
-    }
   }
 
   /**
@@ -270,31 +229,31 @@ export class Slider extends FASTElement implements SliderConfiguration {
    * @internal
    */
   @observable
-  public trackWidth: number = 0;
+  private trackWidth: number = 0;
 
   /**
    * @internal
    */
   @observable
-  public trackMinWidth: number = 0;
+  private trackMinWidth: number = 0;
 
   /**
    * @internal
    */
   @observable
-  public trackHeight: number = 0;
+  private trackHeight: number = 0;
 
   /**
    * @internal
    */
   @observable
-  public trackLeft: number = 0;
+  private trackLeft: number = 0;
 
   /**
    * @internal
    */
   @observable
-  public trackMinHeight: number = 0;
+  private trackMinHeight: number = 0;
 
   /**
    * The value property, typed as a number.
@@ -314,8 +273,8 @@ export class Slider extends FASTElement implements SliderConfiguration {
    *
    * @public
    */
-  public get _min(): number {
-    return this.min ?? 0;
+  public get _minValue(): number {
+    return this.min === undefined ? 0 : this.min;
   }
 
   /**
@@ -323,8 +282,8 @@ export class Slider extends FASTElement implements SliderConfiguration {
    *
    * @public
    */
-  public get _max(): number {
-    return this.max ?? 100;
+  public get _maxValue(): number {
+    return this.max === undefined ? 100 : this.max;
   }
 
   /**
@@ -336,25 +295,13 @@ export class Slider extends FASTElement implements SliderConfiguration {
   public valueTextFormatter: (value: string) => string | null = () => null;
 
   /**
-   * @internal
+   * The element's disabled state.
+   * @public
+   * @remarks
+   * HTML Attribute: `disabled`
    */
-  public valueChanged(previous: string, next: string): void {
-    if (this.$fastController.isConnected) {
-      const nextAsNumber = parseFloat(next);
-      const value = limit(this._min, this._max, this.convertToConstrainedValue(nextAsNumber)).toString();
-
-      if (value !== next) {
-        this.value = value;
-        return;
-      }
-
-      super.valueChanged(previous, next);
-
-      this.setThumbPositionForOrientation(this.direction);
-
-      this.$emit('change');
-    }
-  }
+  @attr({ mode: 'boolean' })
+  public disabled: boolean = false;
 
   /**
    * The minimum allowed value.
@@ -367,7 +314,7 @@ export class Slider extends FASTElement implements SliderConfiguration {
   @attr({ converter: nullableNumberConverter })
   public min!: number; // Map to proxy element.
   protected minChanged(): void {
-    this.validate();
+    return;
   }
 
   /**
@@ -381,7 +328,7 @@ export class Slider extends FASTElement implements SliderConfiguration {
   @attr({ converter: nullableNumberConverter })
   public max: number = 10; // Map to proxy element.
   protected maxChanged(): void {
-    this.validate();
+    return;
   }
 
   /**
@@ -394,12 +341,7 @@ export class Slider extends FASTElement implements SliderConfiguration {
   @attr({ converter: nullableNumberConverter })
   public step: number | undefined;
   protected stepChanged(): void {
-    if (this.proxy instanceof HTMLInputElement) {
-      this.proxy.step = `${this.step}`;
-    }
-
     this.updateStepMultiplier();
-    this.validate();
   }
 
   /**
@@ -473,11 +415,9 @@ export class Slider extends FASTElement implements SliderConfiguration {
    */
   public increment(): void {
     const newVal: number =
-      this.direction !== Direction.rtl && this.orientation !== Orientation.vertical
-        ? Number(this.value) + Number(this.stepValue)
-        : Number(this.value) + Number(this.stepValue);
+      this.direction !== Direction.rtl ? Number(this.value) + this.stepValue : Number(this.value) - this.stepValue;
     const incrementedVal: number = this.convertToConstrainedValue(newVal);
-    const incrementedValString: string = incrementedVal < this._max ? `${incrementedVal}` : `${this._max}`;
+    const incrementedValString: string = incrementedVal < this._maxValue ? `${incrementedVal}` : `${this._maxValue}`;
     this.value = incrementedValString;
   }
 
@@ -488,11 +428,11 @@ export class Slider extends FASTElement implements SliderConfiguration {
    */
   public decrement(): void {
     const newVal =
-      this.direction !== Direction.rtl && this.orientation !== Orientation.vertical
+      this.direction !== Direction.rtl
         ? Number(this.value) - Number(this.stepValue)
-        : Number(this.value) - Number(this.stepValue);
+        : Number(this.value) + Number(this.stepValue);
     const decrementedVal: number = this.convertToConstrainedValue(newVal);
-    const decrementedValString: string = decrementedVal > this._min ? `${decrementedVal}` : `${this._min}`;
+    const decrementedValString: string = decrementedVal > this._minValue ? `${decrementedVal}` : `${this._minValue}`;
     this.value = decrementedValString;
   }
 
@@ -504,11 +444,15 @@ export class Slider extends FASTElement implements SliderConfiguration {
     if (e.key === keyHome) {
       e.preventDefault();
       this.value =
-        this.direction !== Direction.rtl && this.orientation !== Orientation.vertical ? `${this._min}` : `${this._max}`;
+        this.direction !== Direction.rtl && this.orientation !== Orientation.vertical
+          ? `${this._minValue}`
+          : `${this._maxValue}`;
     } else if (e.key === keyEnd) {
       e.preventDefault();
       this.value =
-        this.direction !== Direction.rtl && this.orientation !== Orientation.vertical ? `${this._max}` : `${this._min}`;
+        this.direction !== Direction.rtl && this.orientation !== Orientation.vertical
+          ? `${this._maxValue}`
+          : `${this._minValue}`;
     } else if (!e.shiftKey) {
       switch (e.key) {
         case keyArrowRight:
@@ -540,10 +484,14 @@ export class Slider extends FASTElement implements SliderConfiguration {
    * @param direction - writing mode
    */
   private setThumbPositionForOrientation(direction: Direction): void {
-    const newPct: number = convertPixelToPercent(Number(this.value), this._min, this._max, direction);
+    const newPct: number = convertPixelToPercent(parseFloat(this.value), this._minValue, this._maxValue, direction);
     const percentage: number = (1 - newPct) * 100;
-
-    this.position = `--slider-progress: calc(100% - ${percentage}%);`;
+    const thumbPosition = `calc(100% - ${percentage}%)`;
+    const trackProgress =
+      !(this.orientation === Orientation.vertical) && direction === Direction.rtl
+        ? `${percentage}%`
+        : `calc(100% - ${percentage}%)`;
+    this.position = `--slider-thumb: ${thumbPosition}; --slider-progress: ${trackProgress}`;
   }
 
   /**
@@ -577,13 +525,8 @@ export class Slider extends FASTElement implements SliderConfiguration {
     }
   };
 
-  /**
-   * @internal
-   */
-  public initialValue: string = '';
-
   private get midpoint(): string {
-    return `${this.convertToConstrainedValue((this._max + this._min) / 2)}`;
+    return `${this.convertToConstrainedValue((this._maxValue + this._minValue) / 2)}`;
   }
 
   private setupDefaultValue(): void {
@@ -593,7 +536,7 @@ export class Slider extends FASTElement implements SliderConfiguration {
       } else {
         const value = parseFloat(this.value);
 
-        if (!Number.isNaN(value) && (value < this._min || value > this._max)) {
+        if (!Number.isNaN(value) && (value < this._minValue || value > this._maxValue)) {
           this.value = this.midpoint;
         }
       }
@@ -620,6 +563,7 @@ export class Slider extends FASTElement implements SliderConfiguration {
     if (this.readOnly || this.disabled || e.defaultPrevented) {
       return;
     }
+
     // update the value based on current position
     const sourceEvent = window.TouchEvent && e instanceof TouchEvent ? e.touches[0] : (e as PointerEvent);
     const eventValue: number =
@@ -648,7 +592,7 @@ export class Slider extends FASTElement implements SliderConfiguration {
       this.orientation === Orientation.horizontal ? this.trackWidth : this.trackHeight,
       this.direction,
     );
-    const newValue: number = (this._max - this._min) * newPosition + this._min;
+    const newValue: number = (this._maxValue - this._minValue) * newPosition + this._minValue;
     return this.convertToConstrainedValue(newValue);
   }
 
@@ -691,7 +635,7 @@ export class Slider extends FASTElement implements SliderConfiguration {
 
   private convertToConstrainedValue(value: number): number {
     if (isNaN(value)) {
-      value = this._min;
+      value = this._minValue;
     }
 
     /**
@@ -700,7 +644,7 @@ export class Slider extends FASTElement implements SliderConfiguration {
      * and is converted to an integer by determining the number of decimal places it represent, multiplying it until it is an
      * integer and then dividing it to get back to the correct number.
      */
-    let constrainedValue: number = value - this._min;
+    let constrainedValue: number = value - this._minValue;
     const roundedConstrainedValue: number = Math.round(constrainedValue / this.stepValue);
     const remainderValue: number =
       constrainedValue - (roundedConstrainedValue * (this.stepMultiplier * this.stepValue)) / this.stepMultiplier;
@@ -709,6 +653,6 @@ export class Slider extends FASTElement implements SliderConfiguration {
       remainderValue >= Number(this.stepValue) / 2
         ? constrainedValue - remainderValue + Number(this.stepValue)
         : constrainedValue - remainderValue;
-    return constrainedValue + this._min;
+    return constrainedValue + this._minValue;
   }
 }

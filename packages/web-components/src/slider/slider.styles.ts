@@ -110,13 +110,17 @@ export const styles = css`
     grid-row: 2 / 2;
     grid-column: 2 / 2;
     transform: translateX(-50%);
-    left: var(--slider-progress);
+    left: var(--slider-thumb);
   }
 
   :host([orientation='vertical']) .thumb-container {
     transform: translateY(50%);
     left: unset;
-    bottom: var(--slider-progress);
+    bottom: var(--slider-thumb);
+  }
+
+  :host(:not(:active)) :is(.thumb-container, .track::before) {
+    transition: all 0.2s ease;
   }
 
   .thumb {
@@ -147,7 +151,8 @@ export const styles = css`
     background-color: ${colorNeutralBackgroundDisabled};
   }
 
-  :host([disabled]) :is(.thumb, .track::before) {
+  :host([disabled]) .thumb,
+  :host([disabled]) .track::before {
     background-color: ${colorNeutralForegroundDisabled};
   }
 `.withBehaviors(
