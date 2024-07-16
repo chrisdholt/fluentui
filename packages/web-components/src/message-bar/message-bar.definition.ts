@@ -14,7 +14,4 @@ export const definition = MessageBar.compose({
   name: `${FluentDesignSystem.prefix}-message-bar`,
   template,
   styles,
-  shadowOptions: {
-    mode: FluentDesignSystem.shadowRootMode,
-  },
 });

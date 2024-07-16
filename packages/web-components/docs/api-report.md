@@ -517,6 +517,7 @@ export class Button extends FASTElement {
     shapeChanged(prev: ButtonShape | undefined, next: ButtonShape | undefined): void;
     size?: ButtonSize;
     sizeChanged(prev: ButtonSize | undefined, next: ButtonSize | undefined): void;
+    tabIndex: number;
     type: ButtonType;
     // @internal
     typeChanged(previous: ButtonType, next: ButtonType): void;
@@ -2000,7 +2001,7 @@ export class Drawer extends FASTElement {
 
 // Warning: (ae-missing-release-tag) "DrawerBody" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
-// @public (undocumented)
+// @public
 export class DrawerBody extends FASTElement {
 }
 
@@ -2143,11 +2144,11 @@ export const FieldTemplate: ElementViewTemplate;
 // Warning: (ae-missing-release-tag) "FluentDesignSystem" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const FluentDesignSystem: Readonly<{
-    prefix: "fluent";
-    shadowRootMode: "open";
+export const FluentDesignSystem: {
+    prefix: string;
+    shadowRootMode: string;
     registry: CustomElementRegistry;
-}>;
+};
 
 // @public
 export const fontFamilyBase = "var(--fontFamilyBase)";
